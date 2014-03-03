@@ -91,7 +91,9 @@ ipinfo_get_entry(const struct sockaddr_in *addr)
    struct ipinfo_entry *entry;
    bool s;
 
+#ifdef WITHUI
    ASSERT(mutex_islocked(btcui->lock));
+#endif
 
    entry = NULL;
    s = hashtable_lookup(hash_ipinfo, addr, sizeof *addr, (void *)&entry);
@@ -133,16 +135,22 @@ ipinfo_resolve_name_cb(void *clientData)
       return;
    }
 
+#ifdef WITHUI
    mutex_lock(btcui->lock);
+#endif
 
    entry->hostname = safe_strdup(host);
    count = hashtable_getnumentries(hash_ipinfo);
 
+#ifdef WITHUI
    mutex_unlock(btcui->lock);
+#endif
 
    Log(LGPFX" host-%u = %s\n", count, host);
 
+#ifdef WITHUI
    bitcui_req_notify_info_update();
+#endif
 }
 
 
@@ -301,7 +309,9 @@ ipinfo_resolve_peer(const struct sockaddr_in *addr)
    struct ipinfo_entry *entry;
    bool s;
 
+#ifdef WITHUI
    ASSERT(mutex_islocked(btcui->lock));
+#endif
 
    /*
     * Let's see if we have a name for each of the peers. If not, use

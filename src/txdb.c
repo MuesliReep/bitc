@@ -1169,9 +1169,15 @@ txdb_remember_tx(struct txdb   *txdb,
    if (bitc_state_ready()) {
       int64 value = txdb_get_tx_credit(&txe->tx) - txdb_get_tx_debit(&txe->tx);
 
+#ifdef WITHUI
       bitcui_set_status("New payment %s: %.8f BTC",
                        value > 0 ? "received" : "made",
                        1.0 * value / ONE_BTC);
+#else
+      printf("New payment %s: %.8f BTC\n",
+                       value > 0 ? "received" : "made",
+                       1.0 * value / ONE_BTC);
+#endif
    }
 
    return res;
@@ -1525,7 +1531,11 @@ txdb_craft_tx(struct txdb              *txdb,
                                     ts + 2 * 60 * 60, &txHash);
    if (res) {
       Warning(LGPFX" failed to transmit tx: %d\n", res);
+#ifdef WITHUI
       bitcui_set_status("got errors while broadcasting tx");
+#else
+      printf("got errors while broadcasting tx\n");
+#endif
    }
 exit:
    buff_free(buf);
@@ -1672,9 +1682,11 @@ txdb_export_tx_info(struct txdb *txdb)
    struct bitcui_tx *ti;
    int tx_num;
 
+#ifdef WITHUI
    if (btcui->inuse == 0) {
       return;
    }
+#endif
 
    /*
     * We may have in hash_tx some entries that are not relevant to our wallet
@@ -1690,5 +1702,7 @@ txdb_export_tx_info(struct txdb *txdb)
    tx_num = ti - tx_info;
 
    qsort(tx_info, tx_num, sizeof *tx_info, txdb_bitcui_tx_entry_compare_cb);
+#ifdef WITHUI
    bitcui_set_tx_info(tx_num, tx_info);
+#endif
 }

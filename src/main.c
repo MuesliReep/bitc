@@ -43,6 +43,7 @@
 
 
 #define LGPFX "BITC:"
+//#define WITHUI
 
 
 enum btc_req_type {
@@ -864,7 +865,11 @@ bitc_transmit_tx(struct btc_tx_desc *tx_desc)
 
    res = wallet_craft_tx(btc->wallet, tx_desc, &tx);
    if (res) {
+#ifdef WITHUI
       bitcui_set_status("TX failed: insufficient funds");
+#else
+      printf("TX failed: insufficient funds\n");
+#endif
    }
 
    btc_msg_tx_free(&tx);
@@ -1041,7 +1046,9 @@ bitc_init(struct secure_area *passphrase,
    btc->wallet_state = WALLET_UNKNOWN;
    btc->updateAndExit = updateAndExit;
 
+#ifdef WITHUI
    bitcui_set_status("starting..");
+#endif
    util_bumpnofds();
    bitc_poll_init();
    bitc_req_init();
@@ -1059,11 +1066,18 @@ bitc_init(struct secure_area *passphrase,
       Log(LGPFX" Using SOCKS5 proxy %s:%u.\n",
           btc->socks5_proxy, btc->socks5_port);
    }
-
+#ifdef WITHUI
    bitcui_set_status("loading addrbook..");
+#else
+   printf("loading addrbook..\n");
+#endif
    addrbook_open(btc->config, &btc->book);
 
+#ifdef WITHUI
    bitcui_set_status("opening blockstore..");
+#else
+   printf("opening blockstore..\n");
+#endif
    res = blockstore_init(btc->config, &btc->blockStore);
    if (res) {
       *errStr = "Failed to open block-store.";
@@ -1072,13 +1086,21 @@ bitc_init(struct secure_area *passphrase,
 
    peergroup_init(btc->config, maxPeers, minPeersInit, 15 * 1000 * 1000); // 15 sec
 
+#ifdef WITHUI
    bitcui_set_status("loading wallet..");
+#else
+   printf("loading wallet..\n");
+#endif
    res = wallet_open(btc->config, passphrase, errStr, &btc->wallet);
    if (res != 0) {
       return res;
    }
 
+#ifdef WITHUI
    bitcui_set_status("adding peers..");
+#else
+   printf("adding peers..\n");
+#endif
    peergroup_seed();
 
    return rpc_init();
@@ -1130,7 +1152,9 @@ bitc_daemon(bool updateAndExit,
             int maxPeers)
 {
    Warning(LGPFX" daemon running.\n");
+#ifdef WITHUI
    bitcui_set_status("connecting to peers..");
+#endif
    peergroup_refill(TRUE /* init */);
 
    while (btc->stop == 0) {
@@ -1325,11 +1349,13 @@ int main(int argc, char *argv[])
    btc->pw = poolworker_create(10);
    ipinfo_init();
    bitc_openssl_init();
+#ifdef WITHUI
    curl_global_init(CURL_GLOBAL_DEFAULT);
    res = bitcui_start(withui);
    if (res) {
       goto exit;
    }
+#endif
 
    res = bitc_init(passphrase, updateAndExit, maxPeers, minPeersInit, &errStr);
    if (res) {
@@ -1341,7 +1367,9 @@ int main(int argc, char *argv[])
 exit:
    bitc_process_events();
    bitc_exit();
+#ifdef WITHUI
    bitcui_stop();
+#endif
    poolworker_wait(btc->pw);
    ipinfo_exit();
    poolworker_destroy(btc->pw);

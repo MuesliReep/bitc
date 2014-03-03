@@ -724,13 +724,17 @@ blockset_open_file(struct blockstore *blockStore,
          blockstore_add_entry(blockStore, be, &hash);
 
          if (i == numHeaders - 1) {
+#ifdef WITHUI
             bitcui_set_status("loading headers .. %llu%%",
                              (offset + numBytes) * 100 / bs->filesize);
+#endif
          }
          if (i == numHeaders - 1 ||
              (numBytes < sizeof buf && i > numHeaders - 256)) {
+#ifdef WITHUI
             bitcui_set_last_block_info(&hash, blockStore->height,
                                       be->header.timestamp);
+#endif
          }
       }
 

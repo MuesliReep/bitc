@@ -349,7 +349,7 @@ base58_encode_check(uint8 addrtype,
 char *
 b58_pubkey_from_uint160(const uint160 *digest)
 {
-   return base58_encode_check(PUBKEY_ADDRESS, 1, digest, sizeof *digest);
+   return base58_encode_check(PUBKEY_ADDRESS_TEST, 1, digest, sizeof *digest);
 }
 
 
@@ -376,7 +376,7 @@ b58_pubkey_is_valid(const char *addr)
    free(buf);
 
    return len == sizeof(uint160) &&
-      (type == PUBKEY_ADDRESS || type == SCRIPT_ADDRESS);
+      (type == PUBKEY_ADDRESS_TEST || type == SCRIPT_ADDRESS_TEST);
 }
 
 
@@ -392,7 +392,7 @@ char *
 b58_bytes_to_privkey(const uint8 *key,
                      size_t len)
 {
-   return base58_encode_check(PRIVKEY_ADDRESS, 1, key, len);
+   return base58_encode_check(PRIVKEY_ADDRESS_TEST, 1, key, len);
 }
 
 
@@ -408,7 +408,7 @@ char *
 b58_bytes_to_pubkey(const uint8 *key,
                     size_t len)
 {
-   return base58_encode_check(PUBKEY_ADDRESS, 1, key, len);
+   return base58_encode_check(PUBKEY_ADDRESS_TEST, 1, key, len);
 }
 
 
@@ -432,7 +432,7 @@ b58_privkey_to_bytes(const char *addr,
 
    Log(LGPFX" -- type=%d, len=%zu\n", type, *len);
 
-   if (type == PRIVKEY_ADDRESS && (*len == 32 || (*len == 33 && buf[32] == 1))) {
+   if (type == PRIVKEY_ADDRESS_TEST && (*len == 32 || (*len == 33 && buf[32] == 1))) {
       *key = buf;
       return 1;
    }
@@ -460,7 +460,7 @@ b58_pubkey_to_uint160(const char *addr,
    uint8 type;
 
    base58_decode_check(&type, addr, &buf, &len);
-   ASSERT(type == PUBKEY_ADDRESS);
+   ASSERT(type == PUBKEY_ADDRESS_TEST);
    if (len == sizeof *digest) {
       memcpy(digest, buf, sizeof *digest);
    }

@@ -913,6 +913,8 @@ wallet_open(struct config      *config,
    wallet_print(wallet);
    wallet_filter_init(wallet);
 
+   //XXX: Non ui version needed!
+#ifdef WITHUI
    if (btcui->inuse) {
       struct bitcui_addr *addrs;
       int num;
@@ -920,6 +922,7 @@ wallet_open(struct config      *config,
       wallet_export_bitcoin_addrs(wallet, &addrs, &num);
       bitcui_set_addrs_info(num, addrs);
    }
+#endif
 
    return res;
 

@@ -231,9 +231,11 @@ peergroup_update_info(void)
    struct bitcui_peer *pinfo;
    int n;
 
+#ifdef WITHUI
    if (btcui->inuse == 0) {
       return;
    }
+#endif
 
    pinfo = safe_calloc(pg->active, sizeof *pinfo);
 
@@ -248,7 +250,9 @@ peergroup_update_info(void)
       }
    }
 
+#ifdef WITHUI
    bitcui_set_peer_info(pg->active, n, addrbook_get_count(btc->book), pinfo);
+#endif
 }
 
 
@@ -291,8 +295,10 @@ static void
 peergroup_download_progress(void)
 {
    struct peergroup *peerGroup = btc->peerGroup;
+#ifdef WITHUI
    bitcui_set_catchup_info(peerGroup->numHdrFetched, peerGroup->numHdrToFetch,
                           peerGroup->numFetched,    peerGroup->numToFetch);
+#endif
 }
 
 
@@ -310,7 +316,12 @@ peergroup_on_ready(void)
    struct circlist_item *li;
 
    Log(LGPFX" peergroup ready.\n");
+#ifdef WITHUI
    bitcui_set_status("online.");
+#else
+   printf("online.\n");
+#endif
+
 
    CIRCLIST_SCAN(li, btc->peerGroup->peer_list) {
       peer_on_ready_li(li);
@@ -377,8 +388,10 @@ peergroup_add_block_finalize(struct blockstore *bs,
    }
    if (bitc_state_ready() || bitc_state_updating_txdb() ||
        (blockstore_get_height(bs) % 2000) == 0) {
+#ifdef WITHUI
       bitcui_set_last_block_info(&best_hash, blockstore_get_height(bs),
                                  blockstore_get_timestamp(btc->blockStore));
+#endif
    }
 }
 
@@ -421,7 +434,9 @@ peergroup_process_filtered_block(struct peer *peer,
    if (orphan) {
       char hashStr[80];
       uint256_snprintf_reverse(hashStr, sizeof hashStr, &blk->blkHash);
+#ifdef WITHUI
       bitcui_set_status("Block %s orphaned", hashStr);
+#endif
    }
    if (s) {
       peergroup_add_block_finalize(bs, FALSE /* full block */);
@@ -462,7 +477,9 @@ peergroup_download_headers(struct peer *peer,
    if (btc->state == BITC_STATE_STARTING) {
       Log(LGPFX" %s -- BITC_STATE_UPDATE_HEADERS.\n", __FUNCTION__);
       btc->state = BITC_STATE_UPDATE_HEADERS;
+#ifdef WITHUI
       bitcui_set_status("online, fetching headers..");
+#endif
       if (btc->peerGroup->numHdrToFetch > 0) {
          time_t last_ts = blockstore_get_timestamp(bs);
          mtime_t lag    = (time(NULL) - last_ts) * 1000 * 1000;
@@ -521,7 +538,11 @@ peergroup_download_filtered_blocks(struct peer *peer)
    }
    Log(LGPFX" %s -- BITC_STATE_UPDATE_TXDB.\n", __FUNCTION__);
    btc->state = BITC_STATE_UPDATE_TXDB;
+#ifdef WITHUI
    bitcui_set_status("online, fetching tx..");
+#else
+   printf("online, fetching tx..");
+#endif
 
    /*
     * - Get hash of the wallet birth.
@@ -1137,7 +1158,9 @@ peergroup_handle_headers(struct peer            *peer,
       s = blockstore_add_header(bs, hdr, &hash, &orphan);
       if (orphan) {
          numOrphans++;
+#ifdef WITHUI
          bitcui_set_status("Block %s orphaned (count = %d)", hashStr, numOrphans);
+#endif
       }
       if (s) {
          btc->peerGroup->numHdrFetched++;
